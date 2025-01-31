@@ -9,6 +9,11 @@
         <p><strong>Описание:</strong> {{ movie.description }}</p>
         <p><strong>Актеры:</strong> {{ movie.actors || 'Неизвестно' }}</p>
         <p><strong>Средний рейтинг:</strong> {{ movie.averageRating || 'Нет отзывов' }}</p>
+        <!-- Кнопка для редактирования (только для администраторов) -->
+        <button v-if="userStore.role === 'admin'" @click="navigateToEditPage" class="edit-button">
+          Редактировать
+        </button>
+
       </div>
     </header>
 
@@ -19,11 +24,7 @@
           <p class="review-comment"><strong>Комментарий:</strong> {{ item.comment }}</p>
           <p class="review-rating"><strong>Оценка:</strong> {{ item.rating }} / 10</p>
           <p class="review-date"><strong>Добавлено:</strong> {{ formatDate(item.createdAt) }}</p>
-          <button
-            v-if="item.userId === userStore.userId"
-            @click="deleteReview(item.id)"
-            class="delete-button"
-          >
+          <button v-if="item.userId === userStore.userId" @click="deleteReview(item.id)" class="delete-button">
             Удалить
           </button>
         </div>
@@ -42,16 +43,18 @@
 
 <script setup>
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import axios from '../config/axios';
 import WTextarea from '../components/wTextarea.vue';
 import WButton from '../components/wButton.vue';
 import WRatings from '../components/wRatings.vue';
-import { useUserStore } from '../store/user'
+import { useUserStore } from '../store/user';
 
 const props = defineProps({
-  id: Number
+  id: Number,
 });
 
+const router = useRouter();
 const movie = ref({
   title: '',
   genre: '',
@@ -59,18 +62,22 @@ const movie = ref({
   description: '',
   actors: '',
   coverImage: '',
-  reviews: []
+  reviews: [],
 });
 
 const comment = ref('');
 const rating = ref(0);
 const userStore = useUserStore(); // Текущий пользователь
 
+// Функция для перехода на страницу редактирования
+const navigateToEditPage = () => {
+  router.push(`/movie/${props.id}/edit`);
+};
+
 // Функция для получения текущего пользователя
 const fetchCurrentUser = async () => {
   try {
-   
-    currentUser.value = JSON.parse(localStorage.getItem('role'));
+    userStore.role = localStorage.getItem('role'); // Получение роли из localStorage
   } catch (error) {
     console.error('Ошибка при получении текущего пользователя:', error);
   }
@@ -103,7 +110,7 @@ const sendReview = async () => {
   try {
     await axios.post(`http://localhost:3000/movies/${props.id}/reviews`, {
       comment: comment.value,
-      rating: rating.value
+      rating: rating.value,
     });
     await getReviews(); // Обновление данных после отправки
     comment.value = ''; // Очистка поля комментария
@@ -143,15 +150,33 @@ onMounted(async () => {
   max-width: 300px;
   border-radius: var(--border-radius);
 }
+
 .reviews-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
+
 .review-card {
   background: #fff;
   padding: var(--padding);
   border-radius: var(--border-radius);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-button {
+  margin-top: 10px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
 }
 </style>
