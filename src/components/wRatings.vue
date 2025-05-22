@@ -29,18 +29,24 @@ const value = computed({
 
 <style scoped>
 .stars {
-  display: flex;
-  justify-content: center;
-  font-size: 24px;
-  color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    font-size: 24px;
+    color: #ccc;
 }
 
 .star {
-  cursor: pointer;
-  transition: color 0.3s;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .star.active {
-  color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.star:hover {
+    transform: scale(1.2);
+    color: var(--secondary-color);
 }
 </style>
